@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "710831389657",
+    "firebase_url": "https://talktalk-7a100.firebaseio.com",
+    "project_id": "talktalk-7a100",
+    "storage_bucket": "talktalk-7a100.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710831389657:android:6396a05cd4a6f667",
+        "android_client_info": {
+          "package_name": "com.plplim.david.talktalk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "710831389657-oi8rtjt6gsoukin6n4dsn024ar5mtp0n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.plplim.david.talktalk",
+            "certificate_hash": "04a7a6751da05aa8143f4e9d6c338c135c3a6c69"
+          }
+        },
+        {
+          "client_id": "710831389657-52hjngt2tgr215g0trcjdak54utdpa75.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByq6j_FPQoOAobvAzYSRyY5HCUXPtLjJc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "710831389657-52hjngt2tgr215g0trcjdak54utdpa75.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
