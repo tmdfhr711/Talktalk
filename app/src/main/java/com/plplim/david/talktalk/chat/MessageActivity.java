@@ -2,10 +2,16 @@ package com.plplim.david.talktalk.chat;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -13,6 +19,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.plplim.david.talktalk.R;
 import com.plplim.david.talktalk.model.ChatModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessageActivity extends AppCompatActivity {
 
@@ -23,11 +32,13 @@ public class MessageActivity extends AppCompatActivity {
     private String uid;
     private String chatRoomUid;
 
+    private RecyclerView recyclerView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
 
+        recyclerView = (RecyclerView) findViewById(R.id.messageActivity_recyclerview);
         uid = FirebaseAuth.getInstance().getCurrentUser().getUid(); //채팅을 요구하는 아이디 즉 단말기에 로그인된 UID
         destinationUid = getIntent().getStringExtra("destinationUid"); //채팅을 당하는 아이디
         button = (Button) findViewById(R.id.messageActivity_button);
@@ -41,7 +52,13 @@ public class MessageActivity extends AppCompatActivity {
                 chatModel.users.put(destinationUid, true);
 
                 if (chatRoomUid == null) {
-                    FirebaseDatabase.getInstance().getReference().child("chatrooms").push().setValue(chatModel);
+                    button.setEnabled(false);
+                    FirebaseDatabase.getInstance().getReference().child("chatrooms").push().setValue(chatModel).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            checkChatRoom();
+                        }
+                    });
                 } else {
                     ChatModel.Comment comment = new ChatModel.Comment();
                     comment.uid = uid;
@@ -67,6 +84,9 @@ public class MessageActivity extends AppCompatActivity {
                     //내가 요구한 chatrooms에 상대방의 아이디가 있는지 확인함
                     if (chatModel.users.containsKey(destinationUid)) {
                         chatRoomUid = item.getKey();
+                        button.setEnabled(true);
+                        recyclerView.setLayoutManager(new LinearLayoutManager(MessageActivity.this));
+                        recyclerView.setAdapter(new RecyclerViewAdapter());
                     }
                 }
             }
@@ -77,4 +97,58 @@ public class MessageActivity extends AppCompatActivity {
             }
         });
     }
+
+    class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        List<ChatModel.Comment> comments;
+
+        public RecyclerViewAdapter() {
+            comments = new ArrayList<>();
+
+            FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    comments.clear();
+
+                    for (DataSnapshot item : dataSnapshot.getChildren()) {
+                        comments.add(item.getValue(ChatModel.Comment.class));
+                    }
+
+                    notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+
+        }
+
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_message, parent, false);
+            return new MessageViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            ((MessageViewHolder) holder).textView_message.setText(comments.get(position).message);
+        }
+
+        @Override
+        public int getItemCount() {
+            return comments.size();
+        }
+
+        private class MessageViewHolder extends RecyclerView.ViewHolder {
+            public TextView textView_message;
+            public MessageViewHolder(View view) {
+                super(view);
+                textView_message = (TextView) view.findViewById(R.id.messageItem_textView_message);
+            }
+        }
+    }
+
 }
