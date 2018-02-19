@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,7 +69,15 @@ public class MessageActivity extends AppCompatActivity {
                     ChatModel.Comment comment = new ChatModel.Comment();
                     comment.uid = uid;
                     comment.message = editText.getText().toString();
-                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").push().setValue(comment);
+                    if (!comment.message.equals("")) {
+                        FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").push().setValue(comment).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                editText.setText("");
+                            }
+                        });
+                    }
+
                 }
 
             }
@@ -135,8 +144,10 @@ public class MessageActivity extends AppCompatActivity {
                     for (DataSnapshot item : dataSnapshot.getChildren()) {
                         comments.add(item.getValue(ChatModel.Comment.class));
                     }
-
+                    //메세지 갱신
                     notifyDataSetChanged();
+                    //메세지 가장 맨 마지막으로 이동하는 코드
+                    recyclerView.scrollToPosition(comments.size() - 1);
                 }
 
                 @Override
@@ -156,12 +167,15 @@ public class MessageActivity extends AppCompatActivity {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             MessageViewHolder messageViewHolder = ((MessageViewHolder) holder);
 
+            //내가보낸 메세지
             if (comments.get(position).uid.equals(uid)) {
                 //내 uid일 경우
                 messageViewHolder.textView_message.setText(comments.get(position).message);
                 messageViewHolder.textView_message.setBackgroundResource(R.drawable.rightbubble);
                 messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE);
                 messageViewHolder.textView_message.setTextSize(25);
+                messageViewHolder.linearlayout_main.setGravity(Gravity.RIGHT);
+            //상대방이 보낸 메세지
             } else {
                 //상대방 uid일 경우
                 Glide.with(holder.itemView.getContext())
@@ -174,7 +188,7 @@ public class MessageActivity extends AppCompatActivity {
                 messageViewHolder.textView_message.setBackgroundResource(R.drawable.leftbubble);
                 messageViewHolder.textView_message.setText(comments.get(position).message);
                 messageViewHolder.textView_message.setTextSize(25);
-
+                messageViewHolder.linearlayout_main.setGravity(Gravity.LEFT);
             }
 
         }
@@ -189,13 +203,14 @@ public class MessageActivity extends AppCompatActivity {
             public TextView textView_name;
             public ImageView imageView_profile;
             public LinearLayout linearLayout_destination;
-
+            public LinearLayout linearlayout_main;
             public MessageViewHolder(View view) {
                 super(view);
                 textView_message = (TextView) view.findViewById(R.id.messageItem_textView_message);
                 textView_name = (TextView) view.findViewById(R.id.messageItem_textview_name);
                 imageView_profile = (ImageView) view.findViewById(R.id.messageItem_imageview_profile);
                 linearLayout_destination = (LinearLayout) view.findViewById(R.id.messageItem_Linearlayout_destination);
+                linearlayout_main = (LinearLayout) view.findViewById(R.id.messageItem_linearlayout_main);
             }
         }
     }
